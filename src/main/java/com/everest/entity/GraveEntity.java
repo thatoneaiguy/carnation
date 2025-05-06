@@ -15,6 +15,7 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.text.Text;
+import net.minecraft.text.TextColor;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.light.LightStorage;
 
@@ -28,15 +29,28 @@ public class GraveEntity extends Entity {
     private String ownerName;
     private final List<Pair<Integer, ItemStack>> storage = new ArrayList<>();
     private boolean collected = false;
+    private int storedLevel;
+    private int storedPoints;
+    private TextColor graveColor = TextColor.parse("white");
 
     // * methods to set up the entity for registration
     public GraveEntity(EntityType<GraveEntity> entityType, World world) {
         super(entityType, world);
     }
 
+    // * colour management
+    public TextColor getGraveColor() {
+        return graveColor;
+    }
+
     // * storing items
     public void storeItems(List<Pair<Integer, ItemStack>> items) {
         storage.addAll(items);
+    }
+
+    public void storeXP(int level, int points) {
+        this.storedLevel = level;
+        this.storedPoints = points;
     }
 
     @Override
@@ -76,6 +90,12 @@ public class GraveEntity extends Entity {
                 owner.getWorld().spawnEntity(new ItemEntity(owner.getWorld(), owner.getX(), owner.getY(), owner.getZ(), stack.copy()));
             }
         }
+
+        owner.addExperienceLevels(storedLevel);
+        owner.addExperience(storedPoints);
+
+        storedLevel = 0;
+        storedPoints = 0;
     }
 
     @Override
@@ -128,7 +148,12 @@ public class GraveEntity extends Entity {
             storage.add(Pair.of(slot, stack));
         }
 
-        System.out.println("Loaded " + storage.size() + " items from NBT");
+        if (nbt.contains("GraveColor")) {
+            graveColor = TextColor.parse(nbt.getString("GraveColor"));
+        }
+
+        storedLevel = nbt.getInt("StoredLevel");
+        storedPoints = nbt.getInt("StoredPoints");
     }
 
     @Override
@@ -144,7 +169,10 @@ public class GraveEntity extends Entity {
         }
         nbt.put("StoredItems", items);
 
-        System.out.println("Saved " + storage.size() + " items to NBT");
+        nbt.putString("GraveColor", graveColor.toString());
+
+        nbt.putInt("StoredLevel", storedLevel);
+        nbt.putInt("StoredPoints", storedPoints);
     }
 
     // * methods that manage environmental interaction

@@ -40,11 +40,18 @@ public class Carnation implements ModInitializer {
 				}
 			}
 
+			int xpLevel = player.experienceLevel;
+			int xpProgress = (int) (player.experienceProgress * player.getNextLevelExperience());
+
+			player.setExperienceLevel(0);
+			player.setExperiencePoints(0);
+
 			if (!storedItems.isEmpty()) {
 				GraveEntity grave = new GraveEntity(CarnationEntities.GRAVE_ENTITY_TYPE, player.getWorld());
 				grave.setPosition(player.getX(), player.getY(), player.getZ());
 				grave.setOwner(player);
 				grave.storeItems(storedItems);
+				grave.storeXP(xpLevel, xpProgress);
 				player.getWorld().spawnEntity(grave);
 			}
 		}));
