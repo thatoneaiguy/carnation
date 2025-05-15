@@ -15,7 +15,7 @@ public class CarnationEntities {
             Registries.ENTITY_TYPE,
             new Identifier(Carnation.MODID, "grave"),
             FabricEntityTypeBuilder.<GraveEntity>create(SpawnGroup.MISC, GraveEntity::new)
-                    .dimensions(EntityDimensions.fixed(0.5F, 0.5F))
+                    .dimensions(EntityDimensions.fixed(0.75F, 0.75F))
                     .fireImmune()
                     .build());
 

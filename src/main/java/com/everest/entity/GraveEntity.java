@@ -9,6 +9,8 @@ import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.projectile.FishingBobberEntity;
+import net.minecraft.item.FishingRodItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -48,7 +50,8 @@ public class GraveEntity extends Entity {
         storage.addAll(items);
     }
 
-    public void storeXP(int level, int points) {
+    public void storeXP(int level, int points, int percent) {
+        level = level * (percent / 100);
         this.storedLevel = level;
         this.storedPoints = points;
     }
@@ -185,6 +188,12 @@ public class GraveEntity extends Entity {
     public void pushAwayFrom(Entity entity) {
         // Empty method to stop this entity from colliding with others
     }
+
+    @Override
+    public boolean collidesWith(Entity other) {
+        return false;
+    }
+
 
     @Override
     public boolean isPushable() {

@@ -6,11 +6,14 @@ import com.mojang.datafixers.util.Pair;
 import net.fabricmc.api.ModInitializer;
 
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
+import net.fabricmc.fabric.api.gamerule.v1.GameRuleFactory;
+import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.world.GameRules;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,6 +23,8 @@ import java.util.List;
 public class Carnation implements ModInitializer {
 	public static final String MODID = "carnation";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MODID);
+
+	public static final GameRules.Key<GameRules.IntRule> XP_SAVE_PERCENTAGE = GameRuleRegistry.register("xpSavingPercentage", GameRules.Category.PLAYER, GameRuleFactory.createIntRule(50));
 
 	@Override
 	public void onInitialize() {
@@ -51,7 +56,7 @@ public class Carnation implements ModInitializer {
 				grave.setPosition(player.getX(), player.getY(), player.getZ());
 				grave.setOwner(player);
 				grave.storeItems(storedItems);
-				grave.storeXP(xpLevel, xpProgress);
+				grave.storeXP(xpLevel, xpProgress, player.getWorld().getGameRules().getInt(XP_SAVE_PERCENTAGE));
 				player.getWorld().spawnEntity(grave);
 			}
 		}));
