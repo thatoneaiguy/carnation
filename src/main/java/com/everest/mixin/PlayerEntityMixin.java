@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(PlayerEntity.class)
 public abstract class PlayerEntityMixin {
 
-    @Inject(method = "dropInventory", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "dropInventory", at = @At(value = "INVOKE", target = "net/minecraft/entity/player/PlayerEntity.vanishCursedItems ()V", shift = At.Shift.AFTER), cancellable = true)
     private void carnation$stopDropInventory(CallbackInfo ci) {
         ci.cancel();
     }
