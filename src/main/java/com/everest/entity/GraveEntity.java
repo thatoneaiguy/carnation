@@ -1,25 +1,18 @@
 package com.everest.entity;
 
+import com.everest.util.GraveManager;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ItemEntity;
-import net.minecraft.entity.attribute.DefaultAttributeContainer;
-import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.projectile.FishingBobberEntity;
-import net.minecraft.item.FishingRodItem;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
-import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
 import net.minecraft.world.World;
-import net.minecraft.world.chunk.light.LightStorage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,11 +31,7 @@ public class GraveEntity extends Entity {
     // * methods to set up the entity for registration
     public GraveEntity(EntityType<GraveEntity> entityType, World world) {
         super(entityType, world);
-    }
-
-    // * colour management
-    public TextColor getGraveColor() {
-        return graveColor;
+        GraveManager.addGrave(this.getOwner(), this);
     }
 
     // * storing items
@@ -104,11 +93,7 @@ public class GraveEntity extends Entity {
     @Override
     public void onRemoved() {
         super.onRemoved();
-//        if (!this.getWorld().isClient && !collected) {
-//            for (Pair<Integer, ItemStack> entry : storage) {
-//                this.getWorld().spawnEntity(new ItemEntity(this.getWorld(), this.getX(), this.getY(), this.getZ(), entry.getRight().copy()));
-//            }
-//        }
+        GraveManager.removeGrave(this.getOwnerUuid());
     }
 
     // * getters and setters
@@ -204,4 +189,5 @@ public class GraveEntity extends Entity {
     public boolean isPushedByFluids() {
         return false;
     }
+
 }
