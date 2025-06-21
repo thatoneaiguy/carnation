@@ -1,6 +1,5 @@
 package com.everest.entity;
 
-import com.everest.util.GraveManager;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -31,7 +30,6 @@ public class GraveEntity extends Entity {
     // * methods to set up the entity for registration
     public GraveEntity(EntityType<GraveEntity> entityType, World world) {
         super(entityType, world);
-        GraveManager.addGrave(this.getOwner(), this);
     }
 
     // * storing items
@@ -93,7 +91,6 @@ public class GraveEntity extends Entity {
     @Override
     public void onRemoved() {
         super.onRemoved();
-        GraveManager.removeGrave(this.getOwnerUuid());
     }
 
     // * getters and setters
