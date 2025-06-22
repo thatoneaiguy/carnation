@@ -4,17 +4,18 @@ import com.everest.entity.GraveEntity;
 import com.everest.init.CarnationEntities;
 import com.mojang.datafixers.util.Pair;
 import net.fabricmc.api.ModInitializer;
-
-import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleFactory;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
+
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.world.GameRules;
+
+import org.apache.logging.log4j.core.jmx.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,16 +26,21 @@ public class Carnation implements ModInitializer {
 	public static final String MODID = "carnation";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MODID);
 
-	public static final GameRules.Key<GameRules.IntRule> XP_SAVE_PERCENTAGE = GameRuleRegistry.register("xpSavingPercentage", GameRules.Category.PLAYER, GameRuleFactory.createIntRule(50));
-	public static final GameRules.Key<GameRules.BooleanRule> SAVE_XP = GameRuleRegistry.register("saveXp", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(true));
+	public static final GameRules.Key<GameRules.IntRule> XP_SAVE_PERCENTAGE =
+			GameRuleRegistry.register("xpSavingPercentage", GameRules.Category.PLAYER, GameRuleFactory.createIntRule(50));
+	public static final GameRules.Key<GameRules.BooleanRule> SAVE_XP =
+			GameRuleRegistry.register("saveXp", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(true));
 
 	@Override
 	public void onInitialize() {
 		CarnationEntities.register();
 
-		ServerLivingEntityEvents.AFTER_DEATH.register(((entity, damageSource) -> {
-			if (!(entity instanceof ServerPlayerEntity player)) return;
-			player.sendMessage(Text.literal("☠ You died at: " + (player.getBlockX() + ", " + player.getBlockY() + ", "  + player.getBlockZ())).formatted(Formatting.RED));
+		ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
+			if (!(entity instanceof net.minecraft.server.network.ServerPlayerEntity player)) return;
+
+			player.sendMessage(Text.literal("☠ You died at: " +
+							player.getBlockX() + ", " + player.getBlockY() + ", " + player.getBlockZ())
+					.formatted(Formatting.RED));
 
 			PlayerInventory inventory = player.getInventory();
 			List<Pair<Integer, ItemStack>> storedItems = new ArrayList<>();
@@ -51,19 +57,25 @@ public class Carnation implements ModInitializer {
 			int xpProgress = (int) (player.experienceProgress * player.getNextLevelExperience());
 
 			player.setExperienceLevel(0);
+			//? if >=1.21.0 {
 			player.setExperiencePoints(0);
+			//?} else {
+			/*player.totalExperience = 0;
+			player.experienceProgress = 0;*/
+			//?}
 
 			if (!storedItems.isEmpty()) {
 				GraveEntity grave = new GraveEntity(CarnationEntities.GRAVE_ENTITY_TYPE, player.getWorld());
 				grave.setPosition(player.getX(), player.getY(), player.getZ());
 				grave.setOwner(player);
 				grave.storeItems(storedItems);
-				if (player.getWorld().getGameRules().getBoolean(SAVE_XP) && player.getWorld().getGameRules().getInt(XP_SAVE_PERCENTAGE) != 0) {
+				if (player.getWorld().getGameRules().getBoolean(SAVE_XP) &&
+						player.getWorld().getGameRules().getInt(XP_SAVE_PERCENTAGE) != 0) {
 					grave.storeXP(xpLevel, xpProgress, player.getWorld().getGameRules().getInt(XP_SAVE_PERCENTAGE));
 				}
 				player.getWorld().spawnEntity(grave);
 			}
-		}));
+		});
 
 		LOGGER.info("six ft ladder");
 	}

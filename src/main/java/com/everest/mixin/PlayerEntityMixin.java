@@ -7,10 +7,19 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+//? if <1.21.0 {
 @Mixin(PlayerEntity.class)
 public abstract class PlayerEntityMixin {
 
-    @Inject(method = "dropInventory", at = @At(value = "INVOKE", target = "net/minecraft/entity/player/PlayerEntity.vanishCursedItems ()V", shift = At.Shift.AFTER), cancellable = true)
+    @Inject(
+            method = "dropInventory",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/entity/player/PlayerEntity;vanishCursedItems()V",
+                    shift = At.Shift.AFTER
+            ),
+            cancellable = true
+    )
     private void carnation$stopDropInventory(CallbackInfo ci) {
         ci.cancel();
     }
@@ -20,3 +29,15 @@ public abstract class PlayerEntityMixin {
         return false;
     }
 }
+//?} else {
+/*@Mixin(PlayerEntity.class)
+public abstract class PlayerEntityMixin {
+
+    // Note: vanishCursedItems() no longer exists — don’t inject here
+
+    @ModifyReturnValue(method = "shouldAlwaysDropXp", at = @At("RETURN"))
+    private boolean carnation$dropsXP(boolean original) {
+        return false;
+    }
+}*/
+//?}

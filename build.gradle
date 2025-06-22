@@ -28,11 +28,16 @@ dependencies {
 
 processResources {
 	inputs.property "minecraft", stonecutter.current.version
+	inputs.property "version", project.version
 
 	filesMatching("fabric.mod.json") {
-		expand "minecraft": stonecutter.current.version
+		expand(
+				"minecraft": stonecutter.current.version,
+				"version": project.version
+		)
 	}
 }
+
 
 tasks.withType(JavaCompile).configureEach {
 	it.options.release = 17
@@ -40,7 +45,7 @@ tasks.withType(JavaCompile).configureEach {
 
 java {
 	withSourcesJar()
-	def java = stonecutter.eval(stonecutter.version.current, ">=1.20.5")
+	def java = stonecutter.eval(stonecutter.current.version, ">=1.20.5")
 			? JavaVersion.VERSION_21 : JavaVersion.VERSION_17
 	targetCompatibility = java
 	sourceCompatibility = java

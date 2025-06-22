@@ -12,6 +12,10 @@ import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.text.TextColor;
 import net.minecraft.world.World;
+//? if <1.19.0 {
+import net.minecraft.util.Formatting;
+/*import net.minecraft.util.Formatting;*/
+//?}
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,12 +31,10 @@ public class GraveEntity extends Entity {
     private int storedPoints;
     private TextColor graveColor = TextColor.parse("white");
 
-    // * methods to set up the entity for registration
     public GraveEntity(EntityType<GraveEntity> entityType, World world) {
         super(entityType, world);
     }
 
-    // * storing items
     public void storeItems(List<Pair<Integer, ItemStack>> items) {
         storage.addAll(items);
     }
@@ -46,6 +48,7 @@ public class GraveEntity extends Entity {
     @Override
     public void tick() {
         super.tick();
+        //? if >=1.20.0 {
         if (!this.getWorld().isClient && !collected) {
             if (ownerUuid != null) {
                 PlayerEntity owner = this.getWorld().getPlayerByUuid(ownerUuid);
@@ -55,34 +58,54 @@ public class GraveEntity extends Entity {
                 }
             }
         }
+        //?} else {
+        /*if (!this.getWorld().isClient && !collected) {
+            if (ownerUuid != null) {
+                PlayerEntity owner = this.getWorld().getPlayerByUuid(ownerUuid);
+                if (owner != null && this.getBoundingBox().intersects(owner.getBoundingBox()) && owner.isAlive()) {
+                    restoreItems(owner);
+                    this.discard();
+                }
+            }
+        }*/
+        //?}
     }
 
     private void restoreItems(PlayerEntity owner) {
         if (collected) return;
         collected = true;
-        System.out.println("no items saved?");
+
         for (Pair<Integer, ItemStack> entry : storage) {
             int slot = entry.getFirst();
             ItemStack stack = entry.getSecond();
 
             if (slot >= 0 && slot < owner.getInventory().size()) {
-                System.out.println("passed slot >= 0 && slot < owner.getInventory().size()");
                 ItemStack current = owner.getInventory().getStack(slot);
                 if (current.isEmpty()) {
-                    System.out.println("setting the stack");
                     owner.getInventory().setStack(slot, stack.copy());
                 } else {
-                    System.out.println("spawning entity");
+                    //? if >=1.20.0 {
                     owner.getWorld().spawnEntity(new ItemEntity(owner.getWorld(), owner.getX(), owner.getY(), owner.getZ(), stack.copy()));
+                    //?} else {
+                    /*owner.getWorld().spawn(new ItemEntity(owner.getWorld(), owner.getX(), owner.getY(), owner.getZ(), stack.copy()));*/
+                    //?}
                 }
             } else {
-                System.out.println("did not pass slot >= 0 && slot < owner.getInventory().size()");
+                //? if >=1.20.0 {
                 owner.getWorld().spawnEntity(new ItemEntity(owner.getWorld(), owner.getX(), owner.getY(), owner.getZ(), stack.copy()));
+                //?} else {
+                /*owner.getWorld().spawn(new ItemEntity(owner.getWorld(), owner.getX(), owner.getY(), owner.getZ(), stack.copy()));*/
+                //?}
             }
         }
 
+        //? if >=1.21.0 {
+        /*owner.giveExperienceLevels(storedLevel);
+        owner.giveExperiencePoints(storedPoints);*/
+        //?} else {
         owner.addExperienceLevels(storedLevel);
         owner.addExperience(storedPoints);
+        //?}
 
         storedLevel = 0;
         storedPoints = 0;
@@ -93,14 +116,12 @@ public class GraveEntity extends Entity {
         super.onRemoved();
     }
 
-    // * getters and setters
     public void setOwner(PlayerEntity owner) {
         this.ownerUuid = owner.getUuid();
         this.ownerName = owner.getDisplayName().toString();
         this.setCustomName(owner.getDisplayName());
         this.setCustomNameVisible(true);
         this.setGlowing(true);
-
         this.owner = owner;
     }
 
@@ -116,15 +137,19 @@ public class GraveEntity extends Entity {
         return ownerName;
     }
 
-    // * saving data
     @Override
-    protected void initDataTracker() {}
+    protected void initDataTracker() {
+    }
 
     @Override
     protected void readCustomDataFromNbt(NbtCompound nbt) {
+        //? if >=1.19.0 {
         ownerUuid = nbt.getUuid("OwnerUUID");
-        NbtList items = nbt.getList("StoredItems", NbtElement.COMPOUND_TYPE);
+        //?} else {
+        /*ownerUuid = UUID.fromString(nbt.getString("OwnerUUID"));*/
+        //?}
 
+        NbtList items = nbt.getList("StoredItems", NbtElement.COMPOUND_TYPE);
         storage.clear();
         for (int i = 0; i < items.size(); i++) {
             NbtCompound compound = items.getCompound(i);
@@ -133,9 +158,15 @@ public class GraveEntity extends Entity {
             storage.add(Pair.of(slot, stack));
         }
 
+        //? if >=1.19.0 {
         if (nbt.contains("GraveColor")) {
             graveColor = TextColor.parse(nbt.getString("GraveColor"));
         }
+        //?} else {
+        /*if (nbt.contains("GraveColor")) {
+            graveColor = Formatting.valueOf(nbt.getString("GraveColor").toUpperCase(Locale.ROOT));
+        }*/
+        //?}
 
         storedLevel = nbt.getInt("StoredLevel");
         storedPoints = nbt.getInt("StoredPoints");
@@ -143,9 +174,13 @@ public class GraveEntity extends Entity {
 
     @Override
     protected void writeCustomDataToNbt(NbtCompound nbt) {
+        //? if >=1.19.0 {
         nbt.putUuid("OwnerUUID", ownerUuid);
-        NbtList items = new NbtList();
+        //?} else {
+        /*nbt.putString("OwnerUUID", ownerUuid.toString());*/
+        //?}
 
+        NbtList items = new NbtList();
         for (Pair<Integer, ItemStack> entry : storage) {
             NbtCompound compound = new NbtCompound();
             compound.putInt("Slot", entry.getFirst());
@@ -154,13 +189,16 @@ public class GraveEntity extends Entity {
         }
         nbt.put("StoredItems", items);
 
+        //? if >=1.19.0 {
         nbt.putString("GraveColor", graveColor.toString());
+        //?} else {
+        /*nbt.putString("GraveColor", graveColor.getName());*/
+        //?}
 
         nbt.putInt("StoredLevel", storedLevel);
         nbt.putInt("StoredPoints", storedPoints);
     }
 
-    // * methods that manage environmental interaction
     @Override
     public boolean handleFallDamage(float fallDistance, float damageMultiplier, DamageSource damageSource) {
         return false;
@@ -168,14 +206,13 @@ public class GraveEntity extends Entity {
 
     @Override
     public void pushAwayFrom(Entity entity) {
-        // Empty method to stop this entity from colliding with others
+        // No-op to prevent pushing
     }
 
     @Override
     public boolean collidesWith(Entity other) {
         return false;
     }
-
 
     @Override
     public boolean isPushable() {
@@ -186,5 +223,4 @@ public class GraveEntity extends Entity {
     public boolean isPushedByFluids() {
         return false;
     }
-
 }
